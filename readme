@@ -1,3 +1,27 @@
+# docker
 docker run -p 37001:9095 -v /home/sti/my_filesystem/node/1:/app/data --name node_1 file_server
 docker run -p 37002:9095 -v /home/sti/my_filesystem/node/2:/app/data --name node_2 file_server
 docker run -p 37003:9095 -v /home/sti/my_filesystem/node/3:/app/data --name node_3 file_server
+
+# mongodb
+docker run -d --name my-mongo -p 27017:27017 -v /home/ky_ubuntu/filesystem/database/mongo_data:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=admin mongo
+
+use mini_fs_service_db;
+db.createCollection("server_group")
+db.server_group.insertMany([{
+                            	"group_id" : 1,
+                            	"servers" : [
+                            		"http://127.0.0.1:37001",
+                            		"http://127.0.0.1:37002",
+                            		"http://127.0.0.1:37003"
+                            	]
+                            },
+                            {
+                            	"group_id" : 2,
+                            	"servers" : [
+                            		"http://127.0.0.1:37004",
+                            		"http://127.0.0.1:37005",
+                            		"http://127.0.0.1:37006"
+                            	]
+                            }
+])
