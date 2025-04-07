@@ -1,0 +1,3 @@
+docker run -p 37001:9095 -v /home/sti/my_filesystem/node/1:/app/data --name node_1 file_server
+docker run -p 37002:9095 -v /home/sti/my_filesystem/node/2:/app/data --name node_2 file_server
+docker run -p 37003:9095 -v /home/sti/my_filesystem/node/3:/app/data --name node_3 file_server
