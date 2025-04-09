@@ -12,35 +12,35 @@ import (
 type File struct {
 	fs           *MiniFsService
 	fileName     string
-	metaInfo     *common.InodeInfo
+	metaInfo     *common.FileMetaInfo
 	dataLocation *common.FileDataLocation
 }
 
 func (f *File) Attr(ctx context.Context, attr *fuse.Attr) error {
 	log.Println("file#attr exe...")
-	attr.Inode = f.metaInfo.INode
-	attr.Mode = os.FileMode(f.metaInfo.Mode)
-	attr.Size = f.metaInfo.Size
-	attr.Atime = f.metaInfo.AccessTime
-	attr.Ctime = f.metaInfo.CreateTime
-	attr.Mtime = f.metaInfo.ModTime
-	attr.Gid = f.metaInfo.Gid
-	attr.Uid = f.metaInfo.Uid
+	attr.Inode = f.metaInfo.Inode.INode
+	attr.Mode = os.FileMode(f.metaInfo.Inode.Mode)
+	attr.Size = f.metaInfo.Inode.Size
+	attr.Atime = f.metaInfo.Inode.AccessTime
+	attr.Ctime = f.metaInfo.Inode.CreateTime
+	attr.Mtime = f.metaInfo.Inode.ModTime
+	attr.Gid = f.metaInfo.Inode.Gid
+	attr.Uid = f.metaInfo.Inode.Uid
 	return nil
 }
 
-func NewFile(fs *MiniFsService, fileName string, metaInfo *common.InodeInfo) *File {
+func NewFile(fs *MiniFsService, fileName string, metaInfo *common.FileMetaInfo) *File {
 	return &File{
 		fs:           fs,
 		fileName:     fileName,
 		metaInfo:     metaInfo,
-		dataLocation: &common.FileDataLocation{},
+		dataLocation: metaInfo.DataLocs,
 	}
 }
 
 func (f *File) writeMeta(ctx context.Context, dataLoc *common.FileDataLocation, size int) error {
 	coll := f.fs.MetaCli.Collection(FileMetaInfoTable)
-	filter := bson.M{"inode.inode": f.metaInfo.INode}
+	filter := bson.M{"inode.inode": f.metaInfo.Inode.INode}
 	update := bson.M{"$set": bson.M{"data_location": dataLoc, "inode.Size": size}}
 	var m common.FileMetaInfo
 	if err := coll.FindOneAndUpdate(ctx, filter, update).Decode(&m); err != nil {
@@ -54,7 +54,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 	// 选择一个复制组
 	repSet := f.fs.PickWriteServerGroup()
 	// 将数据写入复制组
-	locs, err := repSet.Write(ctx, req.Data, int64(f.metaInfo.INode))
+	locs, err := repSet.Write(ctx, req.Data, int64(f.metaInfo.Inode.INode))
 	if err != nil {
 		return err
 	}

@@ -58,7 +58,8 @@ func (fs *MiniFsService) Init() {
 func (fs *MiniFsService) initMongo() {
 	log.Println("miniFs init mongo start.....")
 	// 1. 设置 MongoDB 连接 URI
-	uri := "mongodb://localhost:27017"
+
+	uri := "mongodb://admin:admin@localhost:27017"
 	// 2. 配置客户端选项
 	clientOptions := options.Client().ApplyURI(uri)
 	// 3. 创建客户端

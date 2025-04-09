@@ -50,7 +50,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		return nil, nil, fmt.Errorf("creat dir error: %v", err)
 	}
 
-	f := NewFile(d.fs, req.Name, &meta.Inode)
+	f := NewFile(d.fs, req.Name, meta)
 	d.files[req.Name] = f
 	return f, f, nil
 }
@@ -71,10 +71,10 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	}
 
 	for _, result := range results {
-		err := cursor.Decode(&result)
-		if err != nil {
-			return nil, err
-		}
+		//err := cursor.Decode(&result)
+		//if err != nil {
+		//	return nil, err
+		//}
 		dirent := fuse.Dirent{Inode: result.Inode.INode, Name: result.Name, Type: fuse.DT_File}
 		dirDirs = append(dirDirs, dirent)
 	}
@@ -93,7 +93,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		}
 	}
 
-	f := NewFile(d.fs, name, &meta.Inode)
+	f := NewFile(d.fs, name, &meta)
 	return f, nil
 }
 

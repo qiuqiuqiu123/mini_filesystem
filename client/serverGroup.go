@@ -73,5 +73,5 @@ func (sg *ServerGroup) Read(ctx context.Context, dataLoc *common.FileDataLocatio
 
 func (sg *ServerGroup) pickServerForRead() int {
 	// 默认读第一个
-	return 0
+	return 1
 }
