@@ -71,10 +71,6 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	}
 
 	for _, result := range results {
-		//err := cursor.Decode(&result)
-		//if err != nil {
-		//	return nil, err
-		//}
 		dirent := fuse.Dirent{Inode: result.Inode.INode, Name: result.Name, Type: fuse.DT_File}
 		dirDirs = append(dirDirs, dirent)
 	}

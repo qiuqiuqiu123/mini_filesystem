@@ -68,14 +68,17 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 		return err
 	}
 	resp.Size = len(req.Data)
+	// 写完后修改当前的inode信息
+	f.metaInfo.Inode.Size = uint64(len(req.Data))
 	return nil
 }
 
 func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	log.Println("file#readAll exe...")
+	// 因为文件是先进行创建create，然后再write，所以write前file实例已经创建了，很多信息是空的，需要更新信息
 	// 判断是否需要加载文件的位置信息
 	if f.dataLocation == nil {
-		if err := f.refreshMeta(); err != nil {
+		if err := f.refreshMeta(ctx); err != nil {
 			return nil, err
 		}
 	}
@@ -92,6 +95,13 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	return content, nil
 }
 
-func (f *File) refreshMeta() error {
+func (f *File) refreshMeta(ctx context.Context) error {
+	coll := f.fs.MetaCli.Collection(FileMetaInfoTable)
+	filter := bson.M{"inode.inode": f.metaInfo.Inode.INode}
+	var m common.FileMetaInfo
+	if err := coll.FindOne(ctx, filter).Decode(&m); err != nil {
+		return err
+	}
+	f.metaInfo = &m
 	return nil
 }
