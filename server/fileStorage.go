@@ -41,7 +41,7 @@ func (fs *FileStorage) Write(id int64, reader io.Reader, size int64) (loc *commo
 	magic := make([]byte, 4)
 	binary.LittleEndian.PutUint32(magic, magicNum)
 	copy(header[:4], magic[:])
-	binary.BigEndian.PutUint64(header[4:], uint64(id))
+	binary.BigEndian.PutUint64(header[4:], uint64(fs.id))
 	binary.BigEndian.PutUint64(header[4+8:], uint64(size))
 	logger.GetLogger().Debugf("build header: %v", header)
 
