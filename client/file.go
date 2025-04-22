@@ -70,6 +70,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 	resp.Size = len(req.Data)
 	// 写完后修改当前的inode信息
 	f.metaInfo.Inode.Size = uint64(len(req.Data))
+	f.dataLocation = dataLoc
 	return nil
 }
 

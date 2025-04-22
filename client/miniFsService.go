@@ -116,6 +116,7 @@ func (fs *MiniFsService) initInoAllocator() {
 	fs.inoAllocator = &InodeAllocator{
 		lock:       sync.Mutex{},
 		superBlock: &result[0],
+		metaCli:    fs.MetaCli,
 	}
 }
 
