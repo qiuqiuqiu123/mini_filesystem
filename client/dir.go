@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 	"mini_filesystem/common"
+	"mini_filesystem/logger"
 	"os"
 	"syscall"
 	"time"
@@ -20,6 +21,42 @@ type Dir struct {
 	fs    *MiniFsService
 	inode uint64
 	files map[string]*File
+}
+
+func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
+	logger.GetLogger().Info("dir#mkdir exe...")
+	newIno, err := d.fs.inoAllocator.AllocInode()
+	if err != nil {
+		return nil, fmt.Errorf("error allocating new inode: %v", err)
+	}
+
+	meta := &common.FileMetaInfo{
+		Name: req.Name,
+		Inode: common.InodeInfo{
+			INode:      newIno,
+			Mode:       uint32(req.Mode),
+			Size:       0,
+			Uid:        req.Uid,
+			Gid:        req.Gid,
+			ModTime:    time.Time{},
+			CreateTime: time.Time{},
+			AccessTime: time.Time{},
+		},
+		SubFiles: make(map[string]*common.InodeInfo),
+	}
+
+	// 将父目录和当前目录填入SubFiles中
+	meta.SubFiles["."] = &meta.Inode
+	meta.SubFiles[".."] = &common.InodeInfo{
+		INode: d.inode,
+	}
+
+	coll := d.fs.MetaCli.Collection(FileMetaInfoTable)
+	_, err = coll.InsertOne(context.TODO(), meta)
+
+	f := NewFile(d.fs, req.Name, meta)
+	d.files[req.Name] = f
+	return f, nil
 }
 
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
@@ -47,7 +84,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	_, err = coll.InsertOne(context.TODO(), meta)
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("creat dir error: %v", err)
+		return nil, nil, fmt.Errorf("creat file error: %v", err)
 	}
 
 	f := NewFile(d.fs, req.Name, meta)
@@ -88,7 +125,6 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 			return nil, syscall.ENOENT
 		}
 	}
-
 	f := NewFile(d.fs, name, &meta)
 	return f, nil
 }

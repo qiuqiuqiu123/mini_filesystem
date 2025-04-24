@@ -9,12 +9,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"mini_filesystem/common"
+	"mini_filesystem/logger"
 	"sync"
 	"time"
 )
 
 const ServerGroupTable = "server_group"
 const SuperBlockTable = "super_block"
+const rootInodeId = 1
 
 type MiniFsService struct {
 	MetaCli      *mongo.Database
@@ -53,6 +55,7 @@ func (fs *MiniFsService) Init() {
 	fs.initMongo()
 	fs.initServerGroup()
 	fs.initInoAllocator()
+	logger.Init(logger.LevelInfo)
 }
 
 func (fs *MiniFsService) initMongo() {
@@ -123,7 +126,7 @@ func (fs *MiniFsService) initInoAllocator() {
 func (fs *MiniFsService) Root() (fs.Node, error) {
 	return &Dir{
 		fs:    fs,
-		inode: 1,
+		inode: rootInodeId,
 		files: make(map[string]*File),
 	}, nil
 }

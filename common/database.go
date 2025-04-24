@@ -14,6 +14,8 @@ type FileMetaInfo struct {
 	Name     string            `bson:"name"`
 	Inode    InodeInfo         `bson:"inode"`
 	DataLocs *FileDataLocation `bson:"data_location"`
+	// 目录文件使用
+	SubFiles map[string]*InodeInfo `bson:"sub_files"`
 }
 
 // 文件系统核心
